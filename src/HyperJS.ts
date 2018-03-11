@@ -57,6 +57,7 @@ export interface Resource <TData  = any>  {
     patch(body?:any, parameters?:any):Promise <any>;
     post(body?:any, parameters?:any):Promise <any>;
     put(body?:any, parameters?:any):Promise <any>;
+    delete(body?:any, parameters?:any):Promise <any>;
     getLink(rel:string):ResourceLink; 
     hasLink(rel:string):boolean;
     followLink <RType = any> (rel:string, templateParameters?:any, queryParameters?:any):Resource <RType> ; 
@@ -98,6 +99,11 @@ export interface Resource <TData  = any>  {
     public post(body?:any, parameters?:any):Promise <any>  {
         return this.resource.post(body, parameters); 
     }
+
+    public delete(body?:any, parameters?:any):Promise <any>  {
+        return this.resource.delete(body, parameters); 
+    }
+
 
     public action(rel:string, body?:any, parameters?:any):Promise <any>  {
         return this.resource.action(rel, body, parameters); 
@@ -211,6 +217,10 @@ export interface Resource <TData  = any>  {
         return await this._action(this.resourceUrl,"PATCH",body);
     }
 
+    public async delete(body?:any, parameters?:any):Promise<any>  {
+        return await this._action(this.resourceUrl,"DELETE",body);
+    }
+
     public async action(rel:string,method:string, body?:any, parameters?:any):Promise<any>  {
         let link = this.getLink(rel); 
 
@@ -244,7 +254,7 @@ export interface Resource <TData  = any>  {
 
     public getLink(rel:string):ResourceLink {
         if (this.isLoaded === false) {
-            throw new Error("Resource not loaded. Use fetch first"); 
+            throw new Error(`resource ${this.resourceUrl} not loaded`); 
         }
 
         return {rel:rel, href: this.client.getLink(rel, this.resource)};
