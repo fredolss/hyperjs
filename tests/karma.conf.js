@@ -4,7 +4,7 @@ module.exports = function (config) {
         files: [
             './build/bundle.js'
         ],
-        frameworks: ['jasmine'],
+        frameworks: ['mocha'],
         browsers: ['PhantomJS']
     });
 };
