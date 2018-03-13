@@ -66,7 +66,6 @@ describe("HyperJS", () =>  {
             server.respond();
             await resource;
         } catch(error) {
-            console.log("in catch");
             sinon.assert.match(error.status,"Internal Server Error"); 
             sinon.assert.match(error.url,"https://api.example.com" );
         }
