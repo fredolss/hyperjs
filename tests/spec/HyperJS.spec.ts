@@ -28,11 +28,11 @@ describe("HyperJS", () =>  {
 
     it("fetch return correct json", async () =>  {
 
-            let resourcePromise = HyperJS.getClient()
-            .withSelfMethod((data:any):string =>  {
+            let resourcePromise = HyperJS.getFactory()
+            .withSelfCallback((data:any):string =>  {
                 return data.url; 
             })
-            .withLinkMethod((rel:string, data:any):string =>  {
+            .withLinkCallback((rel:string, data:any):string =>  {
                 return data[rel]; 
             })
             .withRequestOptions(()=> {
@@ -60,9 +60,9 @@ describe("HyperJS", () =>  {
         JSON.stringify( {url:"test"})]); 
 
         try {
-            let resource = HyperJS.getClient()
-            .withSelfMethod(getSelf)
-            .withLinkMethod(getLink)
+            let resource = HyperJS.getFactory()
+            .withSelfCallback(getSelf)
+            .withLinkCallback(getLink)
             .getResource<MyData>("https://api.example.com")
             .fetch(); 
 

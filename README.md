@@ -19,10 +19,17 @@ The most basic thing you can do with Hyper JS is to let it start at the root URL
 var hyperjs = require('hyperjs');
 
 hyperjs
-.getClient() //the client acts as a factory for the resource
-.getResource('http://api.example.com')
-.followLink('link') //creates a new resource form the link
-.fetch().then(function(resource) {   //fetches the resources
+.getFactory() //the factory acts as a factory for the resource
+.withSelfCallback(function (data:any)  { //set the callback used for gettings the self link
+    return data.url; 
+})
+.withLinkCallback(function(rel:string, data:any)  { //set method used for getting the links
+    return data[rel]; 
+})
+.getResource('http://api.example.com') //creates new empty Resource object
+.followLink('link') //creates a new resource from the link
+.followLink('link2') //creates a new resource from another link
+.fetch().then(function(resource) {   //fetches the resource
     //do useful things with the Resource object
     //resource.getData().propertyOnTheData
 }, function(error) {

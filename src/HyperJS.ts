@@ -10,7 +10,7 @@ export interface ResourceLink {
 export interface ResourceParams {
     url?:string; 
     resource?:any; 
-    client?:internalClient; 
+    client?:InternalResourceFactory; 
 }
 
 function setUrlParameters(url:string, templateParameters:any, queryParameters?:any):string {
@@ -67,7 +67,7 @@ export interface Resource < TData = any >  {
 
     private resource:Resource < TData > ; 
 
-    constructor(private linkMethod:Function, private parentResource:Resource < TData > , private  client:internalClient) {
+    constructor(private linkMethod:Function, private parentResource:Resource < TData > , private  client:InternalResourceFactory) {
 
     }
 
@@ -144,7 +144,7 @@ export interface Resource < TData = any >  {
 
     private resourceUrl; 
     private resource:TData; 
-    private client:internalClient; 
+    private client:InternalResourceFactory; 
 
     constructor(resourceParams?:ResourceParams) {
         
@@ -294,11 +294,11 @@ export interface Resource < TData = any >  {
     }
 }
 
-export function getClient():Client {
-    return new DefaultClient(); 
+export function getFactory():ResourceFactory {
+    return new DefaultResourceFactory(); 
 }
 
-interface internalClient extends Client {
+interface InternalResourceFactory extends ResourceFactory {
     getSelf:(data:any) => string; 
     getLink:(rel:string, data:any) => string;
     getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
@@ -317,26 +317,26 @@ export interface CustomRequestOptions {
     contentType?:string;
 }
 
-export interface Client {
-    withSelfMethod:(callback: (data:any) => string) =>Client; 
-    withLinkMethod:(callback:(rel:string, data:any) => string) => Client;
-    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => Client;
+export interface ResourceFactory {
+    withSelfCallback:(callback: (data:any) => string) =>ResourceFactory; 
+    withLinkCallback:(callback:(rel:string, data:any) => string) => ResourceFactory;
+    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => ResourceFactory;
     getResource < TData = any > (resourceUrl:string):Resource < TData > ; 
     wrapResource < TData = any > (resource:TData):Resource < TData > ; 
 }
 
-class DefaultClient implements internalClient,Client {
+class DefaultResourceFactory implements InternalResourceFactory,ResourceFactory {
 
     private _getSelf;
     private _getLink;
     private _withRequestOptions;
 
-    public  withSelfMethod = (callBack:getSelf)  => {
+    public  withSelfCallback = (callBack:getSelf)  => {
         this._getSelf = callBack;
         return this; 
     }
 
-    public  withLinkMethod = (callBack:getLink) =>  {
+    public  withLinkCallback = (callBack:getLink) =>  {
         this._getLink = callBack;
         return this; 
     }
