@@ -29,8 +29,19 @@ describe("HyperJS", () =>  {
     it("fetch return correct json", async () =>  {
 
             let resourcePromise = HyperJS.getClient()
-            .withSelfMethod(getSelf)
-            .withLinkMethod(getLink)
+            .withSelfMethod((data:any):string =>  {
+                return data.url; 
+            })
+            .withLinkMethod((rel:string, data:any):string =>  {
+                return data[rel]; 
+            })
+            .withRequestOptions(()=> {
+                return {
+                    headers: {
+                        "Authentication": "test"
+                    }
+                }
+            })
             .getResource<MyData>("https://api.example.com")
             .fetch()
 
@@ -39,7 +50,7 @@ describe("HyperJS", () =>  {
                 JSON.stringify( {url:"test"})); 
 
               let resource = await resourcePromise; 
-              sinon.assert.match(resource.getResource(),  {url:"test"}); 
+              sinon.assert.match(resource.getData(),  {url:"test"}); 
     }); 
 
     it("fetch handles 500 error", async () =>  {

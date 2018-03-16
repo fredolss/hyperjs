@@ -52,7 +52,7 @@ function setUrlParameters(url:string, templateParameters:any, queryParameters?:a
 
 export interface Resource < TData = any >  {
     fetch(parameters?:any):Promise < Resource < TData >> ; 
-    getResource():TData; 
+    getData():TData; 
     action(rel:string, method:string, body?:any, parameters?:any):Promise < any > ; 
     patch(body?:any, parameters?:any):Promise < any > ; 
     post(body?:any, parameters?:any):Promise < any > ; 
@@ -84,8 +84,8 @@ export interface Resource < TData = any >  {
         return this.resource; 
     }
 
-    public getResource():TData {
-        return this.resource.getResource(); 
+    public getData():TData {
+        return this.resource.getData(); 
     }
 
     public put(body?:any, parameters?:any):Promise < any >  {
@@ -110,13 +110,13 @@ export interface Resource < TData = any >  {
 
     public followLink < RType > (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType >  {
 
-        if (this.resource && typeof this.resource.getResource() !== "undefined") {
+        if (this.resource && typeof this.resource.getData() !== "undefined") {
             return this.resource.followLink(rel, templateParameters); 
         }
 
         let getLazy = () =>  {
 
-            let resource = this.resource.getResource(); 
+            let resource = this.resource.getData(); 
             let rootLink = this.client.getLink(rel, resource); 
 
             if (typeof rootLink == "undefined") {
@@ -144,7 +144,6 @@ export interface Resource < TData = any >  {
 
     private resourceUrl; 
     private resource:TData; 
-    private isLoaded = false; 
     private client:internalClient; 
 
     constructor(resourceParams?:ResourceParams) {
@@ -157,7 +156,6 @@ export interface Resource < TData = any >  {
 
         if (typeof resourceParams.resource !== "undefined") {
             this.resource = resourceParams.resource; 
-            this.isLoaded = true; 
             this.resourceUrl = this.client.getSelf(this.resource); 
         }else {this.resourceUrl = resourceParams.url; }
     }
@@ -190,16 +188,16 @@ export interface Resource < TData = any >  {
         let headers = []; 
  
         let options =  {
-            "method":"GET", 
-            "url":usedUrl, 
-            "headers":headers
+            method:"GET", 
+            url:usedUrl, 
+            headers:headers
         }; 
 
-         this.resource = await this.makeRequest(options); 
+         this.resource = await this.makeRequest(options);
          return this; 
     }
 
-    public getResource():TData {
+    public getData():TData {
         return this.resource; 
     }
 
@@ -244,7 +242,7 @@ export interface Resource < TData = any >  {
         return this.makeRequest(options);
     }
 
-    private async makeRequest(options:RequestOptions){
+    protected async makeRequest(options:RequestOptions){
         
         let customOptions =  this.client.getRequestOptions(this,options); 
 
@@ -262,8 +260,8 @@ export interface Resource < TData = any >  {
     }
 
     public getLink(rel:string):ResourceLink {
-        if (this.isLoaded === false) {
-            throw new Error(`resource $ {this.resourceUrl}not loaded`); 
+        if (typeof this.resource  === "undefined") {
+            throw new Error(`resource ${this.resourceUrl} not loaded`); 
         }
 
         return {rel:rel, href:this.client.getLink(rel, this.resource)}; 
@@ -287,12 +285,11 @@ export interface Resource < TData = any >  {
             return {href:tempLink, rel:rel, method:"GET"}; 
         }; 
 
-        if (this.isLoaded === false) {
+        if (typeof this.resource  === "undefined") {
             return new LazyResource < RType > (getLazy,  < any > this, this.client); 
         }
 
         let resourceLink = getLazy(); 
-
         return new BaseResource( {url:resourceLink.href}); 
     }
 }
@@ -307,14 +304,23 @@ interface internalClient extends Client {
     getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
 }
 
-type getRequestOptions = (resource:Resource,options:RequestOptions) => RequestOptions;
+type getRequestOptions = (resource:Resource,options:RequestOptions) => CustomRequestOptions;
 type getLink = (rel:string, data:any) => string;
 type getSelf = (data:any) => string; 
 
+
+export interface CustomRequestOptions {
+    method?:string, 
+    url?:string, 
+    data?:string | object, 
+    headers?:object,
+    contentType?:string;
+}
+
 export interface Client {
-    withSelfMethod:(callback:getSelf) =>Client; 
-    withLinkMethod:(callback:getLink) => Client;
-    withRequestOptions: (callback:getRequestOptions) => Client;
+    withSelfMethod:(callback: (data:any) => string) =>Client; 
+    withLinkMethod:(callback:(rel:string, data:any) => string) => Client;
+    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => Client;
     getResource < TData = any > (resourceUrl:string):Resource < TData > ; 
     wrapResource < TData = any > (resource:TData):Resource < TData > ; 
 }
@@ -356,7 +362,7 @@ class DefaultClient implements internalClient,Client {
     }
 
     /**
-     * Gets a resource
+     * Gets a Resource
      * @param resourceUrl the url of the resource
      */
     public getResource < TData > (resourceUrl:string):Resource < TData >  {
