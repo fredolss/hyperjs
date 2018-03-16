@@ -1,5 +1,5 @@
-import {request} from "./HttpClient"; 
-import LinkNotFoundError from "./LinkNotFoundError";
+import {request, RequestOptions } from "./HttpClient"; 
+import LinkNotFoundError from "./LinkNotFoundError"; 
 
 export interface ResourceLink {
     rel:string; 
@@ -10,13 +10,13 @@ export interface ResourceLink {
 export interface ResourceParams {
     url?:string; 
     resource?:any; 
-    client?:HyperClient; 
+    client?:internalClient; 
 }
 
 function setUrlParameters(url:string, templateParameters:any, queryParameters?:any):string {
 
     if (typeof url === "undefined") {
-        throw new Error("url must be set"); 
+        throw new Error("url must be set");
     }
 
     if (typeof templateParameters !== "undefined") {
@@ -50,28 +50,28 @@ function setUrlParameters(url:string, templateParameters:any, queryParameters?:a
     return url.replace(new RegExp("#", "g"), "%23"); 
 }
 
-export interface Resource <TData  = any>  {
-    fetch(parameters?:any):Promise <Resource <TData>>; 
-    getResource(): TData; 
-    action(rel:string,method:string, body?:any, parameters?:any):Promise <any>;
-    patch(body?:any, parameters?:any):Promise <any>;
-    post(body?:any, parameters?:any):Promise <any>;
-    put(body?:any, parameters?:any):Promise <any>;
-    delete(body?:any, parameters?:any):Promise <any>;
+export interface Resource < TData = any >  {
+    fetch(parameters?:any):Promise < Resource < TData >> ; 
+    getResource():TData; 
+    action(rel:string, method:string, body?:any, parameters?:any):Promise < any > ; 
+    patch(body?:any, parameters?:any):Promise < any > ; 
+    post(body?:any, parameters?:any):Promise < any > ; 
+    put(body?:any, parameters?:any):Promise < any > ; 
+    delete(body?:any, parameters?:any):Promise < any > ; 
     getLink(rel:string):ResourceLink; 
-    hasLink(rel:string):boolean;
-    followLink <RType = any> (rel:string, templateParameters?:any, queryParameters?:any):Resource <RType> ; 
+    hasLink(rel:string):boolean; 
+    followLink < RType = any > (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType > ; 
 }
 
- class LazyResource <TData> implements Resource <TData>  {
+ class LazyResource < TData > implements Resource < TData >  {
 
-    private resource:Resource <TData>; 
+    private resource:Resource < TData > ; 
 
-    constructor(private linkMethod:Function, private parentResource:Resource <TData>, private  client:HyperClient) {
+    constructor(private linkMethod:Function, private parentResource:Resource < TData > , private  client:internalClient) {
 
     }
 
-    public async fetch(parameters?:any):Promise <Resource<TData>>  {
+    public async fetch(parameters?:any):Promise < Resource < TData >>  {
 
         if (!!this.resource) {
             return this.resource.fetch(parameters); 
@@ -84,42 +84,40 @@ export interface Resource <TData  = any>  {
         return this.resource; 
     }
 
-    public getResource(): TData  {
+    public getResource():TData {
         return this.resource.getResource(); 
     }
 
-    public put(body?:any, parameters?:any):Promise <any>  {
+    public put(body?:any, parameters?:any):Promise < any >  {
         return this.resource.put(body, parameters); 
     }
 
-    public patch(body?:any, parameters?:any):Promise <any>  {
+    public patch(body?:any, parameters?:any):Promise < any >  {
         return this.resource.patch(body, parameters); 
     }
 
-    public post(body?:any, parameters?:any):Promise <any>  {
+    public post(body?:any, parameters?:any):Promise < any >  {
         return this.resource.post(body, parameters); 
     }
 
-    public delete(body?:any, parameters?:any):Promise <any>  {
+    public delete(body?:any, parameters?:any):Promise < any >  {
         return this.resource.delete(body, parameters); 
     }
 
-
-    public action(rel:string, body?:any, parameters?:any):Promise <any>  {
+    public action(rel:string, body?:any, parameters?:any):Promise < any >  {
         return this.resource.action(rel, body, parameters); 
     }
 
-    public followLink <RType> (rel:string, templateParameters?:any, queryParameters?:any):Resource <RType>  {
+    public followLink < RType > (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType >  {
 
-        let self = this; 
         if (this.resource && typeof this.resource.getResource() !== "undefined") {
             return this.resource.followLink(rel, templateParameters); 
         }
 
         let getLazy = () =>  {
 
-            let resource = self.resource.getResource();
-            let rootLink = this.client.getLink(rel,resource);
+            let resource = this.resource.getResource(); 
+            let rootLink = this.client.getLink(rel, resource); 
 
             if (typeof rootLink == "undefined") {
                 throw new LinkNotFoundError(rootLink)
@@ -127,10 +125,10 @@ export interface Resource <TData  = any>  {
 
             let resourceLink = rootLink; 
             let tempLink = setUrlParameters(resourceLink, templateParameters, queryParameters); 
-            return {href:tempLink, rel:rel, method:"GET" }; 
+            return {href:tempLink, rel:rel, method:"GET"}; 
         }; 
 
-        return new LazyResource <RType> (getLazy, <any> this, this.client); 
+        return new LazyResource < RType > (getLazy,  < any > this, this.client); 
     }
 
     public getLink(rel:string):ResourceLink {
@@ -142,12 +140,12 @@ export interface Resource <TData  = any>  {
     }
 }
 
- class BaseResource <TData> implements Resource <TData>  {
+ class BaseResource < TData > implements Resource < TData >  {
 
     private resourceUrl; 
-    private resource: TData; 
+    private resource:TData; 
     private isLoaded = false; 
-    private client:HyperClient; 
+    private client:internalClient; 
 
     constructor(resourceParams?:ResourceParams) {
         
@@ -161,11 +159,11 @@ export interface Resource <TData  = any>  {
             this.resource = resourceParams.resource; 
             this.isLoaded = true; 
             this.resourceUrl = this.client.getSelf(this.resource); 
-        } else {this.resourceUrl = resourceParams.url; }
+        }else {this.resourceUrl = resourceParams.url; }
     }
 
-    public async fetch(templateParameters?:any, queryParameters?:any):Promise <Resource<TData>>  {
-
+    public async fetch(templateParameters?:any, queryParameters?:any):Promise < Resource < TData >>  {
+  
         let usedUrl = setUrlParameters(this.resourceUrl, templateParameters); 
 
         // add query parameters
@@ -197,89 +195,100 @@ export interface Resource <TData  = any>  {
             "headers":headers
         }; 
 
-         this.resource = await request(options); 
+         this.resource = await this.makeRequest(options); 
          return this; 
     }
 
-    public getResource():TData  {
+    public getResource():TData {
         return this.resource; 
     }
 
-    public async post(body?:any, parameters?:any):Promise<any>  {
-        return await this._action(this.resourceUrl,"POST",body);
+    public async post(body?:any, parameters?:any):Promise < any >  {
+        return await this._action(this.resourceUrl, "POST", body); 
     }
 
-    public async put(body?:any, parameters?:any):Promise<any>  {
-        return await this._action(this.resourceUrl,"PUT",body);
+    public async put(body?:any, parameters?:any):Promise < any >  {
+        return await this._action(this.resourceUrl, "PUT", body); 
     }
 
-    public async patch(body?:any, parameters?:any):Promise<any>  {
-        return await this._action(this.resourceUrl,"PATCH",body);
+    public async patch(body?:any, parameters?:any):Promise < any >  {
+        return await this._action(this.resourceUrl, "PATCH", body); 
     }
 
-    public async delete(body?:any, parameters?:any):Promise<any>  {
-        return await this._action(this.resourceUrl,"DELETE",body);
+    public async delete(body?:any, parameters?:any):Promise < any >  {
+        return await this._action(this.resourceUrl, "DELETE", body); 
     }
 
-    public async action(rel:string,method:string, body?:any, parameters?:any):Promise<any>  {
+    public async action(rel:string, method:string, body?:any, parameters?:any):Promise < any >  {
         let link = this.getLink(rel); 
 
-        if (!link) {
-            throw new LinkNotFoundError(rel);
+        if ( ! link) {
+            throw new LinkNotFoundError(rel); 
         }
 
         let url = setUrlParameters(link.href, parameters); 
-        return await this._action(url,method,body);
+        return await this._action(url, method, body); 
     }
 
-    private async _action(url, method, body){
+    private async _action(url, method, body) {
         let headers =  {}; 
-
-        let version = this.client.getVersion(this.resource);
-
-        if (typeof  version !== "undefined") {
-            headers =  {"version":version }; 
-        }
-      
+ 
         let options =  {
-            "method":method, 
-            "url":url, 
+            method:method, 
+            url:url, 
             headers:headers, 
             data:JSON.stringify(body), 
             contentType:"application/json; charset=utf-8"
-        }; 
+        };
+      
+        return this.makeRequest(options);
+    }
 
+    private async makeRequest(options:RequestOptions){
+        
+        let customOptions =  this.client.getRequestOptions(this,options); 
+
+        if(typeof customOptions !== "undefined"){
+            if(typeof customOptions.method != "undefined"){
+                options.method = customOptions.method;
+            }
+    
+            for(let key in customOptions.headers){
+                options.headers[key] = customOptions.headers[key];
+            }
+        }
+      
         return await request(options); 
     }
 
     public getLink(rel:string):ResourceLink {
         if (this.isLoaded === false) {
-            throw new Error(`resource ${this.resourceUrl} not loaded`); 
+            throw new Error(`resource $ {this.resourceUrl}not loaded`); 
         }
 
-        return {rel:rel, href: this.client.getLink(rel, this.resource)};
+        return {rel:rel, href:this.client.getLink(rel, this.resource)}; 
     }
 
     public hasLink(rel:string):boolean {
-       return typeof this.getLink(rel) !== "undefined";
+       return typeof this.getLink(rel) !== "undefined"; 
     }
 
-    public followLink<RType> (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType >  {
+    public followLink < RType > (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType >  {
 
         let getLazy = () =>  {
 
             if (typeof this.resource === "undefined") {
-                throw new Error(`resource ${this.resourceUrl} not loaded`); 
+                throw new Error(`resource $ {this.resourceUrl}not loaded`); 
             }
 
-            let resourceLink = this.client.getLink(rel, this.resource);
+            let resourceLink = this.client.getLink(rel, this.resource); 
 
             let tempLink = setUrlParameters(resourceLink, templateParameters, queryParameters); 
-            return {href:tempLink, rel:rel, method:"GET" }; 
+            return {href:tempLink, rel:rel, method:"GET"}; 
         }; 
 
         if (this.isLoaded === false) {
-            return new LazyResource <RType> (getLazy,  <any> this,this.client); 
+            return new LazyResource < RType > (getLazy,  < any > this, this.client); 
         }
 
         let resourceLink = getLazy(); 
@@ -288,40 +297,77 @@ export interface Resource <TData  = any>  {
     }
 }
 
-export function getClient(options):HyperClient {
-    return new HyperClientImplementation(options); 
+export function getClient():Client {
+    return new DefaultClient(); 
 }
 
-export interface HyperClient {
-    getSelf:(data:any)=>string;
-    getLink:(rel:string, data:any) =>string;
-    getVersion:(data:any)=>string;
-    getResource <TData = any> (resourceUrl:string):Resource <TData> ; 
-    wrapResource <TData  = any> (resource:TData ):Resource <TData> ; 
+interface internalClient extends Client {
+    getSelf:(data:any) => string; 
+    getLink:(rel:string, data:any) => string;
+    getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
 }
 
-class HyperClientImplementation implements HyperClient {
+type getRequestOptions = (resource:Resource,options:RequestOptions) => RequestOptions;
+type getLink = (rel:string, data:any) => string;
+type getSelf = (data:any) => string; 
 
-    public getSelf:(data:any)=>string;
-    public getLink:(rel:string, data:any) =>string;
-    public getVersion:(data:any)=>string;
+export interface Client {
+    withSelfMethod:(callback:getSelf) =>Client; 
+    withLinkMethod:(callback:getLink) => Client;
+    withRequestOptions: (callback:getRequestOptions) => Client;
+    getResource < TData = any > (resourceUrl:string):Resource < TData > ; 
+    wrapResource < TData = any > (resource:TData):Resource < TData > ; 
+}
 
-    constructor(options:any) {
-       this.getLink = options.getLink;
-       this.getVersion = options.getVersion;
-       this.getSelf = options.getSelf;
+class DefaultClient implements internalClient,Client {
+
+    private _getSelf;
+    private _getLink;
+    private _withRequestOptions;
+
+    public  withSelfMethod = (callBack:getSelf)  => {
+        this._getSelf = callBack;
+        return this; 
+    }
+
+    public  withLinkMethod = (callBack:getLink) =>  {
+        this._getLink = callBack;
+        return this; 
+    }
+
+    public withRequestOptions = (callBack:getRequestOptions)=>{
+        this._withRequestOptions = callBack;
+        return this; 
+    }
+
+    public getRequestOptions = (resource:Resource,options:RequestOptions) => {
+        return this._withRequestOptions;
+    }
+
+    public getSelf = (data:any) => {
+        return this._getSelf;
+    }
+    
+    public getLink = (rel:string, data:any) => {
+        return this._getLink;
+    }
+
+    constructor() {
     }
 
     /**
      * Gets a resource
      * @param resourceUrl the url of the resource
-     * @param cache set to true if the resource should be cached
      */
-    public getResource <TData> (resourceUrl:string):Resource <TData>  {
+    public getResource < TData > (resourceUrl:string):Resource < TData >  {
         return new BaseResource( {url:resourceUrl, client:this }); 
     }
 
-    public wrapResource<TData> (resource:TData ):Resource <TData>  {
+     /**
+     * Creates a Resource based on the json data provided
+     * @param resource the json data
+     */
+    public wrapResource < TData > (resource:TData):Resource < TData >  {
         return new BaseResource( {resource:resource, client:this }); 
     }
 }

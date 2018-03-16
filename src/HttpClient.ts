@@ -1,10 +1,11 @@
 import HttpError from "./HttpError"; 
 
-interface RequestOptions {
+export interface RequestOptions {
     method:string, 
     url:string, 
     data?:string | object, 
-    headers:object
+    headers?:object,
+    contentType?:string;
 }
 
 export async function request(options:RequestOptions) {
