@@ -1,5 +1,7 @@
 # Hyper JS
 
+[![Build Status](https://travis-ci.org/fredolss/hyperjs.svg?branch=master)](https://travis-ci.org/fredolss/hyperjs)
+
 A Hypermedia API/HATEOAS Client for the Browser
 
 Introduction
