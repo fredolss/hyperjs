@@ -28,7 +28,7 @@ describe("HyperJS", () =>  {
 
     it("fetch return correct json", async () =>  {
 
-            let resourcePromise = HyperJS.getFactory()
+            let resourcePromise = HyperJS.builder()
             .withSelfCallback((data:any):string =>  {
                 return data.url; 
             })
@@ -60,7 +60,7 @@ describe("HyperJS", () =>  {
         JSON.stringify( {url:"test"})]); 
 
         try {
-            let resource = HyperJS.getFactory()
+            let resource = HyperJS.builder()
             .withSelfCallback(getSelf)
             .withLinkCallback(getLink)
             .getResource<MyData>("https://api.example.com")

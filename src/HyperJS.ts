@@ -10,7 +10,7 @@ export interface ResourceLink {
 export interface ResourceParams {
     url?:string; 
     resource?:any; 
-    client?:InternalResourceFactory; 
+    client?:InternalResourceBuilder; 
 }
 
 function setUrlParameters(url:string, templateParameters:any, queryParameters?:any):string {
@@ -67,7 +67,7 @@ export interface Resource < TData = any >  {
 
     private resource:Resource < TData > ; 
 
-    constructor(private linkMethod:Function, private parentResource:Resource < TData > , private  client:InternalResourceFactory) {
+    constructor(private linkMethod:Function, private parentResource:Resource < TData > , private  client:InternalResourceBuilder) {
 
     }
 
@@ -144,7 +144,7 @@ export interface Resource < TData = any >  {
 
     private resourceUrl; 
     private resource:TData; 
-    private client:InternalResourceFactory; 
+    private client:InternalResourceBuilder; 
 
     constructor(resourceParams?:ResourceParams) {
         
@@ -294,11 +294,11 @@ export interface Resource < TData = any >  {
     }
 }
 
-export function getFactory():ResourceFactory {
-    return new DefaultResourceFactory(); 
+export function builder():ResourceBuilder {
+    return new DefaultResourceBuilder(); 
 }
 
-interface InternalResourceFactory extends ResourceFactory {
+interface InternalResourceBuilder extends ResourceBuilder {
     getSelf:(data:any) => string; 
     getLink:(rel:string, data:any) => string;
     getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
@@ -317,15 +317,15 @@ export interface CustomRequestOptions {
     contentType?:string;
 }
 
-export interface ResourceFactory {
-    withSelfCallback:(callback: (data:any) => string) =>ResourceFactory; 
-    withLinkCallback:(callback:(rel:string, data:any) => string) => ResourceFactory;
-    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => ResourceFactory;
+export interface ResourceBuilder {
+    withSelfCallback:(callback: (data:any) => string) =>ResourceBuilder; 
+    withLinkCallback:(callback:(rel:string, data:any) => string) => ResourceBuilder;
+    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => ResourceBuilder;
     getResource < TData = any > (resourceUrl:string):Resource < TData > ; 
     wrapResource < TData = any > (resource:TData):Resource < TData > ; 
 }
 
-class DefaultResourceFactory implements InternalResourceFactory,ResourceFactory {
+class DefaultResourceBuilder implements InternalResourceBuilder,ResourceBuilder {
 
     private _getSelf;
     private _getLink;
