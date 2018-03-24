@@ -10,5 +10,6 @@ export default class HttpError extends  Error {
         this.status = status;
         this.status = statusText;
         this.data = data;
+        this.name = "HttpError";
     }
 }

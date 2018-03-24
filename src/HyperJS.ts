@@ -1,5 +1,7 @@
 import {request, RequestOptions } from "./HttpClient"; 
 import LinkNotFoundError from "./LinkNotFoundError"; 
+import UrlMustBeSetError from "./UrlMustBeSetError";
+import ResourceNotLoadedError from "./ResourceNotLoadedError";
 
 export interface ResourceLink {
     rel:string; 
@@ -13,10 +15,10 @@ export interface ResourceParams {
     client?:InternalResourceBuilder; 
 }
 
-function setUrlParameters(url:string, templateParameters:any, queryParameters?:any):string {
+function setParameters(url:string, templateParameters:any, queryParameters?:any):string {
 
     if (typeof url === "undefined") {
-        throw new Error("url must be set");
+        throw new UrlMustBeSetError();
     }
 
     if (typeof templateParameters !== "undefined") {
@@ -120,11 +122,11 @@ export interface Resource < TData = any >  {
             let rootLink = this.client.getLink(rel, resource); 
 
             if (typeof rootLink == "undefined") {
-                throw new LinkNotFoundError(rootLink)
+                throw new LinkNotFoundError(rel)
             }
 
             let resourceLink = rootLink; 
-            let tempLink = setUrlParameters(resourceLink, templateParameters, queryParameters); 
+            let tempLink = setParameters(resourceLink, templateParameters, queryParameters); 
             return {href:tempLink, rel:rel, method:"GET"}; 
         }; 
 
@@ -162,35 +164,12 @@ export interface Resource < TData = any >  {
 
     public async fetch(templateParameters?:any, queryParameters?:any):Promise < Resource < TData >>  {
   
-        let usedUrl = setUrlParameters(this.resourceUrl, templateParameters); 
+        let usedUrl = setParameters(this.resourceUrl, templateParameters, queryParameters); 
 
-        // add query parameters
-
-        for (let prop in queryParameters) {
-            if (queryParameters.hasOwnProperty(prop)) {
-                if (usedUrl.indexOf("?") === -1) {
-                    usedUrl += "?"; 
-                }else {
-                    usedUrl += "&"; 
-                }
-
-                let values = queryParameters[prop]; 
-                if (Array.isArray(values) === false) {
-                    values = [values]; 
-                }
-
-                values.forEach(val =>  {
-                    usedUrl += prop + "=" + encodeURIComponent(val); 
-                }); 
-            }
-        }
-
-        let headers = []; 
- 
         let options =  {
             method:"GET", 
             url:usedUrl, 
-            headers:headers
+            headers:[]
         }; 
 
          this.resource = await this.makeRequest(options);
@@ -224,7 +203,7 @@ export interface Resource < TData = any >  {
             throw new LinkNotFoundError(rel); 
         }
 
-        let url = setUrlParameters(link.href, parameters); 
+        let url = setParameters(link.href, parameters); 
         return await this._action(url, method, body); 
     }
 
@@ -261,7 +240,7 @@ export interface Resource < TData = any >  {
 
     public getLink(rel:string):ResourceLink {
         if (typeof this.resource  === "undefined") {
-            throw new Error(`resource ${this.resourceUrl} not loaded`); 
+            throw new  ResourceNotLoadedError(this.resourceUrl); 
         }
 
         return {rel:rel, href:this.client.getLink(rel, this.resource)}; 
@@ -276,12 +255,12 @@ export interface Resource < TData = any >  {
         let getLazy = () =>  {
 
             if (typeof this.resource === "undefined") {
-                throw new Error(`resource $ {this.resourceUrl}not loaded`); 
+                throw new ResourceNotLoadedError(this.resourceUrl); 
             }
 
             let resourceLink = this.client.getLink(rel, this.resource); 
 
-            let tempLink = setUrlParameters(resourceLink, templateParameters, queryParameters); 
+            let tempLink = setParameters(resourceLink, templateParameters, queryParameters); 
             return {href:tempLink, rel:rel, method:"GET"}; 
         }; 
 
