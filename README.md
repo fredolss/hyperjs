@@ -19,7 +19,7 @@ The most basic thing you can do with Hyper JS is to let it start at the root URL
 var hyperjs = require('hyperjs');
 
 hyperjs
-.getFactory() //get the factory for the resource
+.builder() //get the builder for the resource
 .withSelfCallback(function (data:any)  { //set the callback used for gettings the self link
     return data.url; 
 }) .withLinkCallback(function(rel:string, data:any)  { //set method used for getting the links
