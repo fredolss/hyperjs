@@ -2,6 +2,7 @@ import {request, RequestOptions } from "./HttpClient";
 import LinkNotFoundError from "./LinkNotFoundError"; 
 import UrlMustBeSetError from "./UrlMustBeSetError";
 import ResourceNotLoadedError from "./ResourceNotLoadedError";
+import {setParameters} from "./TemplateParameters";
 
 export interface ResourceLink {
     rel:string; 
@@ -15,43 +16,6 @@ export interface ResourceParams {
     client?:InternalResourceBuilder; 
 }
 
-function setParameters(url:string, templateParameters:any, queryParameters?:any):string {
-
-    if (typeof url === "undefined") {
-        throw new UrlMustBeSetError();
-    }
-
-    if (typeof templateParameters !== "undefined") {
-        for (let propName in templateParameters) {
-            if (templateParameters.hasOwnProperty(propName)) {
-                url = url.replace("{" + propName + "}", encodeURIComponent(templateParameters[propName])); 
-            }
-        }
-    }
-
-    if (typeof queryParameters !== "undefined") {
-        for (let prop in queryParameters) {
-            if (queryParameters.hasOwnProperty(prop)) {
-                if (url.indexOf("?") === -1) {
-                    url += "?"; 
-                }else {
-                    url += "&"; 
-                }
-
-                let values = queryParameters[prop]; 
-                if (Array.isArray(values) === false) {
-                    values = [values]; 
-                }
-                values.forEach(val =>  {
-                    url += prop + "=" + encodeURIComponent(val); 
-                }); 
-            }
-        }
-    }
-
-    return url.replace(new RegExp("#", "g"), "%23"); 
-}
-
 export interface Resource < TData = any >  {
     fetch(parameters?:any):Promise < Resource < TData >> ; 
     getData():TData; 
@@ -63,6 +27,32 @@ export interface Resource < TData = any >  {
     getLink(rel:string):ResourceLink; 
     hasLink(rel:string):boolean; 
     followLink < RType = any > (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType > ; 
+}
+
+interface InternalResourceBuilder extends ResourceBuilder {
+    getSelf:(data:any) => string; 
+    getLink:(rel:string, data:any) => string;
+    getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
+}
+
+type getRequestOptions = (resource:Resource,options:RequestOptions) => CustomRequestOptions;
+type getLink = (rel:string, data:any) => string;
+type getSelf = (data:any) => string; 
+
+export interface CustomRequestOptions {
+    method?:string, 
+    url?:string, 
+    data?:string | object, 
+    headers?:object,
+    contentType?:string;
+}
+
+export interface ResourceBuilder {
+    withSelfCallback:(callback: (data:any) => string) =>ResourceBuilder; 
+    withLinkCallback:(callback:(rel:string, data:any) => string) => ResourceBuilder;
+    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => ResourceBuilder;
+    getResource < TData = any > (resourceUrl:string):Resource < TData > ; 
+    wrapResource < TData = any > (resource:TData):Resource < TData > ; 
 }
 
  class LazyResource < TData > implements Resource < TData >  {
@@ -279,33 +269,6 @@ export interface Resource < TData = any >  {
 
 export function builder():ResourceBuilder {
     return new DefaultResourceBuilder(); 
-}
-
-interface InternalResourceBuilder extends ResourceBuilder {
-    getSelf:(data:any) => string; 
-    getLink:(rel:string, data:any) => string;
-    getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
-}
-
-type getRequestOptions = (resource:Resource,options:RequestOptions) => CustomRequestOptions;
-type getLink = (rel:string, data:any) => string;
-type getSelf = (data:any) => string; 
-
-
-export interface CustomRequestOptions {
-    method?:string, 
-    url?:string, 
-    data?:string | object, 
-    headers?:object,
-    contentType?:string;
-}
-
-export interface ResourceBuilder {
-    withSelfCallback:(callback: (data:any) => string) =>ResourceBuilder; 
-    withLinkCallback:(callback:(rel:string, data:any) => string) => ResourceBuilder;
-    withRequestOptions: (callback:(resource:Resource,options:RequestOptions) => CustomRequestOptions) => ResourceBuilder;
-    getResource < TData = any > (resourceUrl:string):Resource < TData > ; 
-    wrapResource < TData = any > (resource:TData):Resource < TData > ; 
 }
 
 class DefaultResourceBuilder implements InternalResourceBuilder,ResourceBuilder {
