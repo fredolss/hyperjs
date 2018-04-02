@@ -5,6 +5,6 @@ module.exports = function (config) {
             './build/bundle.js'
         ],
         frameworks: ['mocha'],
-        browsers: ['PhantomJS']
+        browsers: ['ChromeHeadless']
     });
 };

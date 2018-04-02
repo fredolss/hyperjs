@@ -81,7 +81,7 @@ export interface Resource < TData = any >  {
 
         await this.parentResource.fetch(); 
         let fetchUrl = this.linkMethod(); 
-        this.resource = new BaseResource( {url:fetchUrl.href }); 
+        this.resource = new BaseResource( {url:fetchUrl.href,client:this.client }); 
         await this.resource.fetch(parameters); 
         return this.resource; 
     }
@@ -151,7 +151,11 @@ export interface Resource < TData = any >  {
     constructor(resourceParams?:ResourceParams) {
         
         if (typeof resourceParams === "undefined") {
-            throw new Error("Parameters missing"); 
+            throw new Error("resourceParams must be set"); 
+        }
+
+        if(typeof resourceParams.client === "undefined"){
+            throw new Error("client must be set");
         }
 
         this.client = resourceParams.client
@@ -269,7 +273,7 @@ export interface Resource < TData = any >  {
         }
 
         let resourceLink = getLazy(); 
-        return new BaseResource( {url:resourceLink.href}); 
+        this.client.getResource(resourceLink.href);
     }
 }
 
@@ -326,15 +330,18 @@ class DefaultResourceBuilder implements InternalResourceBuilder,ResourceBuilder 
     }
 
     public getRequestOptions = (resource:Resource,options:RequestOptions) => {
-        return this._withRequestOptions;
+        if(typeof this._withRequestOptions !== "function"){
+            return options;
+        }
+        return this._withRequestOptions(resource,options);
     }
 
     public getSelf = (data:any) => {
-        return this._getSelf;
+        return this._getSelf(data);
     }
     
     public getLink = (rel:string, data:any) => {
-        return this._getLink;
+        return this._getLink(rel,data);
     }
 
     constructor() {

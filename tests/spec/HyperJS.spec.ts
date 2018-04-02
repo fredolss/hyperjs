@@ -21,7 +21,8 @@ describe("HyperJS", () =>  {
     var server; 
 
     beforeEach(function () {
-             server = sinon.fakeServer.create(); 
+             server = sinon.fakeServer.create();
+             server.autoRespond = true;
          }); 
 
          afterEach(function () {server.restore(); }); 
@@ -43,21 +44,60 @@ describe("HyperJS", () =>  {
                 }
             })
             .getResource<MyData>("https://api.example.com")
-            .fetch()
+            .fetch();
 
             server.requests[0].respond(
                 200,  {"Content-Type":"application/json"}, 
-                JSON.stringify( {url:"test"})); 
+                JSON.stringify( {url:"https://api.example.com"})); 
 
               let resource = await resourcePromise; 
-              sinon.assert.match(resource.getData(),  {url:"test"}); 
+              sinon.assert.match(resource.getData(),  {url:"https://api.example.com"}); 
     }); 
+
+    it("can follow one link", async () =>  {
+
+        server.respondWith("GET", "https://api.example.com",
+        [200,  {"Content-Type":"application/json"}, 
+                JSON.stringify( {
+                    url:"https://api.example.com", 
+                    mySubResource:"https://api.example.com/sub" 
+                })]); 
+
+        server.respondWith("GET", "https://api.example.com/sub",
+        [200,  {"Content-Type":"application/json"}, 
+                JSON.stringify({
+                    url:"https://api.example.com/sub",
+                    prop:"value"
+                })]); 
+
+        let resourcePromise = HyperJS.builder()
+        .withSelfCallback((data:any):string =>  {
+            return data.url; 
+        })
+        .withLinkCallback((rel:string, data:any):string =>  {
+            return data[rel]; 
+        })
+        .withRequestOptions(()=> {
+            return {
+                headers: {
+                    "Authentication": "test"
+                }
+            }
+        })
+        .getResource<MyData>("https://api.example.com")
+        .followLink("mySubResource")
+        .fetch()
+
+          let resource = await resourcePromise; 
+          server.respond();
+          sinon.assert.match(resource.getData(),  { prop:"value", url:"https://api.example.com/sub"}); 
+}); 
 
     it("fetch handles 500 error", async () =>  {
 
         server.respondWith("GET", "https://api.example.com",
 [500,  {"Content-Type":"application/json"}, 
-        JSON.stringify( {url:"test"})]); 
+        JSON.stringify( {url:"https://api.example.com"})]); 
 
         try {
             let resource = HyperJS.builder()
@@ -66,8 +106,8 @@ describe("HyperJS", () =>  {
             .getResource<MyData>("https://api.example.com")
             .fetch(); 
 
-            server.respond();
-            await resource; 
+
+            await resource;
         } catch(error) {
             sinon.assert.match(error.status, "Internal Server Error"); 
             sinon.assert.match(error.url, "https://api.example.com" );
