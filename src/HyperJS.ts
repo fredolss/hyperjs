@@ -55,7 +55,7 @@ export interface ResourceBuilder {
     wrapResource < TData = any > (resource:TData):Resource < TData > ; 
 }
 
- class LazyResource < TData > implements Resource < TData >  {
+ class ProxyResource < TData > implements Resource < TData >  {
 
     private resource:Resource < TData > ; 
 
@@ -71,7 +71,7 @@ export interface ResourceBuilder {
 
         await this.parentResource.fetch(); 
         let fetchUrl = this.linkMethod(); 
-        this.resource = new BaseResource( {url:fetchUrl.href,client:this.client }); 
+        this.resource = this.client.getResource(fetchUrl.href); 
         await this.resource.fetch(parameters); 
         return this.resource; 
     }
@@ -120,7 +120,7 @@ export interface ResourceBuilder {
             return {href:tempLink, rel:rel, method:"GET"}; 
         }; 
 
-        return new LazyResource < RType > (getLazy,  < any > this, this.client); 
+        return new ProxyResource < RType > (getLazy,  < any > this, this.client); 
     }
 
     public getLink(rel:string):ResourceLink {
@@ -259,7 +259,7 @@ export interface ResourceBuilder {
         }; 
 
         if (typeof this.resource  === "undefined") {
-            return new LazyResource < RType > (getLazy,  < any > this, this.client); 
+            return new ProxyResource < RType > (getLazy,  < any > this, this.client); 
         }
 
         let resourceLink = getLazy(); 
