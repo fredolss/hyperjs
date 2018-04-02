@@ -1,7 +1,7 @@
 import {request, RequestOptions } from "./HttpClient"; 
-import LinkNotFoundError from "./LinkNotFoundError"; 
-import UrlMustBeSetError from "./UrlMustBeSetError";
-import ResourceNotLoadedError from "./ResourceNotLoadedError";
+import LinkNotFoundError from "./errors/LinkNotFoundError"; 
+import UrlMustBeSetError from "./errors/UrlMustBeSetError";
+import ResourceNotLoadedError from "./errors/ResourceNotLoadedError";
 import {setParameters} from "./TemplateParameters";
 
 export interface ResourceLink {

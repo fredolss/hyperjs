@@ -1,4 +1,4 @@
-import UrlMustBeSetError from "./UrlMustBeSetError";
+import UrlMustBeSetError from "./errors/UrlMustBeSetError";
 
 export function setParameters(url:string, templateParameters:any, queryParameters?:any):string {
 

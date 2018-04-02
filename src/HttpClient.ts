@@ -1,4 +1,4 @@
-import HttpError from "./HttpError"; 
+import HttpError from "./errors/HttpError"; 
 
 export interface RequestOptions {
     method:string, 
