@@ -18,7 +18,7 @@ export interface ResourceParams {
 
 export interface Resource < TData = any >  {
     fetch(parameters?:any):Promise < Resource < TData >> ; 
-    getData():TData; 
+    data:TData; 
     action(rel:string, method:string, body?:any, parameters?:any):Promise < any > ; 
     patch(body?:any, parameters?:any):Promise < any > ; 
     post(body?:any, parameters?:any):Promise < any > ; 
@@ -76,8 +76,8 @@ export interface ResourceBuilder {
         return this.resource; 
     }
 
-    public getData():TData {
-        return this.resource.getData(); 
+    public get data():TData {
+        return this.resource.data; 
     }
 
     public put(body?:any, parameters?:any):Promise < any >  {
@@ -102,13 +102,13 @@ export interface ResourceBuilder {
 
     public followLink < RType > (rel:string, templateParameters?:any, queryParameters?:any):Resource < RType >  {
 
-        if (this.resource && typeof this.resource.getData() !== "undefined") {
+        if (this.resource && typeof this.resource.data !== "undefined") {
             return this.resource.followLink(rel, templateParameters); 
         }
 
         let getLazy = () =>  {
 
-            let resource = this.resource.getData(); 
+            let resource = this.resource.data; 
             let rootLink = this.client.getLink(rel, resource); 
 
             if (typeof rootLink == "undefined") {
@@ -170,7 +170,7 @@ export interface ResourceBuilder {
          return this; 
     }
 
-    public getData():TData {
+    public get data():TData {
         return this.resource; 
     }
 

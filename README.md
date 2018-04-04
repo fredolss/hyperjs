@@ -37,7 +37,7 @@ let builder = hyperjs
         return {
                 headers: {
                     "Authentication": "test", //authentication header for use with jwt token or similar
-                    "If-Match": resource.getData().etag  //optimistic concurrency
+                    "If-Match": resource.data.etag  //optimistic concurrency
                 }
             }
     }
@@ -63,8 +63,8 @@ try {
     //handle error
 }
 
-//now the data for the resource is available using the getData Method
-//childResource.getData().prop etc
+//now the data for the resource is available using the data property
+//childResource.data.prop etc
 
 //if we have an action called 'update' we can call it like this
 //we dont need to pass in any If-Match header because we handle that in one place with 'withRequestOptions'

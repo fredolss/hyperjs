@@ -29,6 +29,7 @@ describe("HyperJS", () =>  {
 
     it("fetch return correct json", async () =>  {
 
+
             let resourcePromise = HyperJS.builder()
             .withSelfCallback((data:any):string =>  {
                 return data.url; 
@@ -51,7 +52,7 @@ describe("HyperJS", () =>  {
                 JSON.stringify( {url:"https://api.example.com"})); 
 
               let resource = await resourcePromise; 
-              sinon.assert.match(resource.getData(),  {url:"https://api.example.com"}); 
+              sinon.assert.match(resource.data,  {url:"https://api.example.com"}); 
     }); 
 
     it("can follow one link", async () =>  {
@@ -90,7 +91,7 @@ describe("HyperJS", () =>  {
 
           let resource = await resourcePromise; 
           server.respond();
-          sinon.assert.match(resource.getData(),  { prop:"value", url:"https://api.example.com/sub"}); 
+          sinon.assert.match(resource.data,  { prop:"value", url:"https://api.example.com/sub"}); 
 }); 
 
     it("fetch handles 500 error", async () =>  {
