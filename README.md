@@ -67,7 +67,7 @@ try {
 //childResource.getData().prop etc
 
 //if we have an action called 'update' we can call it like this
-//we dont need to pass in any If-Match header because we handle that in on place with 'withRequestOptions'
+//we dont need to pass in any If-Match header because we handle that in one place with 'withRequestOptions'
 
 try {
     await grandChildResource.action("update","PUT",{ prop:"UpdatedValue"  });
