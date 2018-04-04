@@ -106,7 +106,6 @@ describe("HyperJS", () =>  {
             .getResource<MyData>("https://api.example.com")
             .fetch(); 
 
-
             await resource;
         } catch(error) {
             sinon.assert.match(error.status, "Internal Server Error"); 

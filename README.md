@@ -15,34 +15,68 @@ Hyper JS does that for you. You just need to tell Hyper JS where it can find the
 
 Hyper JS works only  in the browser. For now, Hyper JS only supports JSON APIs. 
 
-The most basic thing you can do with Hyper JS is to let it start at the root URL of an API, follow some links and pass the resource that is found at the end of this journey back to you. We call this procedure a *"link traversal process"*. Here's how:
+The most basic thing you can do with Hyper JS is to let it start at the root URL of an API, follow some links and pass the resource that is found at the end of this journey back to you. We call this procedure a *"link traversal process"*.
+
+Hyper JS will simplify your data access code. Let's demonstrate with a typical edit example:
 
 ```javascript
 var hyperjs = require('hyperjs');
 
-hyperjs
-.builder() //get the builder for the resource
+//get the builder for the resource
+//we will usually only need to do this once
+let builder = hyperjs
+.builder() 
 .withSelfCallback(function (data:any)  { //set the callback used for gettings the self link
     return data.url; 
-}) .withLinkCallback(function(rel:string, data:any)  { //set method used for getting the links
+})
+.withLinkCallback(function(rel:string, data:any)  { //set method used for getting the links
     return data[rel]; 
-}).withRequestOptions((resource)=> {
+})
+.withRequestOptions((resource, options)=> {
+    if(options.method === "PUT" || options.method === "DELETE") {
+        return {
+                headers: {
+                    "Authentication": "test", //authentication header for use with jwt token or similar
+                    "If-Match": resource.getData().etag  //optimistic concurrency
+                }
+            }
+    }
+
     return {
         headers: {
             "Authentication": "test", //authentication header for use with jwt token or similar
-            "Version": resource.getData() ? resource.getData().version : "" //optimistic concurrency
         }
     }
-}).getResource('http://api.example.com') //creates new empty Resource object
-.followLink('link') //creates a new resource from the link
-.followLink('link2') //creates a new resource from another link
-.fetch().then(function(resource) {   //fetches the resource
-    //do useful things with the Resource object
-    //resource.getData().propertyOnTheData
-}, function(error) {
-   //handle error
 });
 
+//create new empty Resource object passing in the 'root URL' of the API.
+let resource = builder.getResource('http://api.example.com');
+
+let grandChildResource = resource
+    .followLink('linkToResouceA') //creates a new resource from the link
+    .followLink('linkToResouceB'); //creates a new resource from another link
+
+//fetch the resource
+try {
+    await grandChildResource.fetch();
+} catch(error){
+    //handle error
+}
+
+//now the data for the resource is available using the getData Method
+//childResource.getData().prop etc
+
+//if we have an action called 'update' we can call it like this
+//we dont need to pass in any If-Match header because we handle that in on place with 'withRequestOptions'
+
+try {
+    await grandChildResource.action("update","PUT",{ prop:"UpdatedValue"  });
+
+    //data is now stale. We can call fetch again to refresh the resource
+    await grandChildResource.fetch();
+} catch(error){
+    //handle error
+}
 ```
 License
 -------
