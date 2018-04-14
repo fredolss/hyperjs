@@ -18,7 +18,7 @@ interface MyData {
 
 describe("HyperJS", () =>  {
 
-    var server; 
+    var server:sinon.SinonFakeServer; 
 
     beforeEach(function () {
              server = sinon.fakeServer.create();
@@ -109,7 +109,8 @@ describe("HyperJS", () =>  {
 
             await resource;
         } catch(error) {
-            sinon.assert.match(error.status, "Internal Server Error"); 
+            sinon.assert.match(error.status, 500); 
+            sinon.assert.match(error.statusText, "Internal Server Error"); 
             sinon.assert.match(error.url, "https://api.example.com" );
         }
     }); 

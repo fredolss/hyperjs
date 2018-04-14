@@ -13,7 +13,7 @@ To follow a path of links you typically start at one URL (most often the root UR
 
 Hyper JS does that for you. You just need to tell Hyper JS where it can find the link to follow in each consecutive document and Hyper JS will happily execute the hops from document to document for you and when it's done, hand you the final http response or document, the one you really wanted to have in the first place.
 
-Hyper JS works only  in the browser. For now, Hyper JS only supports JSON APIs. 
+Hyper JS works only in the browser. For now, Hyper JS only supports JSON APIs. 
 
 The most basic thing you can do with Hyper JS is to let it start at the root URL of an API, follow some links and pass the resource that is found at the end of this journey back to you. We call this procedure a *"link traversal process"*.
 

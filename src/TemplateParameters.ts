@@ -19,7 +19,7 @@ export function setParameters(url:string, templateParameters:any, queryParameter
             if (queryParameters.hasOwnProperty(prop)) {
                 if (url.indexOf("?") === -1) {
                     url += "?"; 
-                }else {
+                } else {
                     url += "&"; 
                 }
 
@@ -27,9 +27,10 @@ export function setParameters(url:string, templateParameters:any, queryParameter
                 if (Array.isArray(values) === false) {
                     values = [values]; 
                 }
-                values.forEach(val =>  {
+
+                for(let val of values)  {
                     url += prop + "=" + encodeURIComponent(val); 
-                }); 
+                };
             }
         }
     }

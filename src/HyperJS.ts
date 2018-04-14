@@ -10,7 +10,7 @@ export interface ResourceLink {
     method?:string; 
 }
 
-export interface ResourceParams {
+interface ResourceParams {
     url?:string; 
     resource?:any; 
     client?:InternalResourceBuilder; 
@@ -134,7 +134,7 @@ export interface ResourceBuilder {
 
  class BaseResource < TData > implements Resource < TData >  {
 
-    private resourceUrl; 
+    private resourceUrl:string; 
     private resource:TData; 
     private client:InternalResourceBuilder; 
 
@@ -162,8 +162,7 @@ export interface ResourceBuilder {
 
         let options =  {
             method:"GET", 
-            url:usedUrl, 
-            headers:[]
+            url:usedUrl
         }; 
 
          this.resource = await this.makeRequest(options);
@@ -201,7 +200,7 @@ export interface ResourceBuilder {
         return await this._action(url, method, body); 
     }
 
-    private async _action(url, method, body) {
+    private async _action(url:string, method:string, body:any) {
         let headers =  {}; 
  
         let options =  {
@@ -224,8 +223,14 @@ export interface ResourceBuilder {
                 options.method = customOptions.method;
             }
     
-            for(let key in customOptions.headers){
-                options.headers[key] = customOptions.headers[key];
+            if(customOptions.headers) {
+                if(typeof options.headers === "undefined"){
+                    options.headers = {};
+                }
+
+                for(let key in customOptions.headers){
+                    options.headers[key] = customOptions.headers[key];
+                }
             }
         }
       
@@ -273,9 +278,9 @@ export function builder():ResourceBuilder {
 
 class DefaultResourceBuilder implements InternalResourceBuilder,ResourceBuilder {
 
-    private _getSelf;
-    private _getLink;
-    private _withRequestOptions;
+    private _getSelf:any;
+    private _getLink:any;
+    private _withRequestOptions:any;
 
     public  withSelfCallback = (callBack:getSelf)  => {
         this._getSelf = callBack;

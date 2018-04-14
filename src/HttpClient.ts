@@ -3,8 +3,8 @@ import HttpError from "./errors/HttpError";
 export interface RequestOptions {
     method:string, 
     url:string, 
-    data?:string | object, 
-    headers?:object,
+    data?:any, 
+    headers?:any,
     contentType?:string;
 }
 
@@ -15,7 +15,7 @@ export async function request(options:RequestOptions) {
     try {
         response = await makeRequest(options); 
     } catch(error) {
-        throw new HttpError(options.url, error.status, error.statusText, error.responseText); 
+        throw new HttpError(options.url, error.status,error.statusText, error.responseText); 
     }
 
     if(response && response.length > 0){
@@ -25,7 +25,7 @@ export async function request(options:RequestOptions) {
     return undefined;
 }
 
-function makeRequest (opts):any {
+function makeRequest (opts:RequestOptions):any {
     return new Promise(function (resolve, reject) {
       var xhr = new XMLHttpRequest(); 
       xhr.open(opts.method, opts.url); 

@@ -1,15 +1,7 @@
 export default class HttpError extends  Error {
-    public status; 
-    public statusText;
-    public data; 
-    public url;
 
-    constructor(url:string, status:number, statusText:string, data:any) {
+    constructor(public url:string, public status:number, public statusText:string, public data:any) {
         super(statusText);
-        this.url = url;
-        this.status = status;
-        this.status = statusText;
-        this.data = data;
         this.name = "HttpError";
     }
 }
