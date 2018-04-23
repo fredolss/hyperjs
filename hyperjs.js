@@ -343,8 +343,13 @@ var BaseResource = (function () {
                             if (typeof customOptions.method != "undefined") {
                                 options.method = customOptions.method;
                             }
-                            for (key in customOptions.headers) {
-                                options.headers[key] = customOptions.headers[key];
+                            if (customOptions.headers) {
+                                if (typeof options.headers === "undefined") {
+                                    options.headers = {};
+                                }
+                                for (key in customOptions.headers) {
+                                    options.headers[key] = customOptions.headers[key];
+                                }
                             }
                         }
                         return [4, HttpClient_1.request(options)];

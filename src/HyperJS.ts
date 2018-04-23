@@ -30,9 +30,9 @@ export interface Resource < TData = any >  {
 }
 
 interface InternalResourceBuilder extends ResourceBuilder {
-    getSelf:(data:any) => string; 
-    getLink:(rel:string, data:any) => string;
-    getRequestOptions:(resource:Resource,options:RequestOptions) => RequestOptions; 
+    getSelf:getSelf; 
+    getLink:getLink;
+    getRequestOptions:getRequestOptions; 
 }
 
 type getRequestOptions = (resource:Resource,options:RequestOptions) => CustomRequestOptions;
@@ -42,8 +42,8 @@ type getSelf = (data:any) => string;
 export interface CustomRequestOptions {
     method?:string, 
     url?:string, 
-    data?:string | object, 
-    headers?:object,
+    data?:any, 
+    headers?:any,
     contentType?:string;
 }
 
