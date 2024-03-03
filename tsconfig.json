@@ -1,15 +1,12 @@
 {
   "compilerOptions": {
-    "target": "es5",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "sourceMap": false,
-    "emitDecoratorMetadata": false,
-    "experimentalDecorators": false,
+    "module": "CommonJS",
+    "target": "ESNext", 
     "removeComments": true,
-    "noImplicitAny": false,
+    "noImplicitAny": true,
     "alwaysStrict": true,
-    "lib": [ "es2015", "es6", "dom" ]
+    "esModuleInterop":true,
+    "lib": [ "es2015", "es6", "dom" ],
   },
   "exclude": [ "./node_modules" ]
 }

@@ -22,7 +22,7 @@ export async function request(options:RequestOptions) {
        return JSON.parse(response); 
     }
 
-    return undefined;
+    return;
 }
 
 function makeRequest (opts:RequestOptions):any {
