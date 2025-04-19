@@ -1,6 +1,6 @@
 # Hyper JS
 
-[![Build Status](https://travis-ci.org/fredolss/hyperjs.svg?branch=master)](https://travis-ci.org/fredolss/hyperjs)
+[![NodeJS with Gulp](https://github.com/fredolss/hyperjs/actions/workflows/npm-build-test.yml/badge.svg?branch=master)](https://github.com/fredolss/hyperjs/actions/workflows/npm-build-test.yml)
 
 A Hypermedia API/HATEOAS Client for the Browser
 
